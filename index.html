@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA-V Interativo | Hexaflex</title>
+    
+    <!-- Scripts Necessários -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1.5rem; transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Navegação -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 py-4 px-6">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <span class="font-bold text-indigo-900 text-xl">Hexaflex 🌀</span>
+            <div class="hidden md:flex space-x-6 text-sm font-semibold text-slate-600">
+                <a href="#intro" class="hover:text-indigo-600">Início</a>
+                <a href="#ia-tools" class="hover:text-indigo-600">Ferramentas IA</a>
+                <a href="#stats" class="hover:text-indigo-600">O Meu Progresso</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Cabeçalho -->
+    <header id="intro" class="bg-indigo-900 text-white py-20 px-6 text-center">
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-4">Modelo DNA-V</h1>
+        <p class="text-xl text-indigo-200 max-w-2xl mx-auto italic">
+            "A sua bússola para a flexibilidade psicológica e uma vida com significado."
+        </p>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-6 space-y-12 -mt-10">
+        
+        <!-- Secção de Ferramentas com IA -->
+        <section id="ia-tools" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Card: Tradutor do Conselheiro -->
+            <div class="glass-card p-8 border-l-8 border-rose-500 shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">Tradutor do Conselheiro</h2>
+                <p class="text-slate-600 mb-6 font-light">O seu rádio mental está crítico? Deixe o Observador reformular o pensamento para ganhar distância.</p>
+                <textarea id="inputIA" class="w-full p-4 rounded-xl border border-slate-200 mb-4 h-24 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="Ex: Eu nunca vou conseguir fazer isto direito..."></textarea>
+                <button onclick="executarIA('transformar')" class="w-full bg-rose-500 text-white font-bold py-3 rounded-xl hover:bg-rose-600 transition shadow-md active:scale-95">✨ Reformular com o Observador</button>
+                <div id="resIA" class="mt-4 p-4 bg-rose-50 rounded-xl text-rose-900 hidden italic border border-rose-100"></div>
+            </div>
+
+            <!-- Card: Mentor de Valores -->
+            <div class="glass-card p-8 border-l-8 border-amber-500 shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">Mentor de Valores</h2>
+                <p class="text-slate-600 mb-6 font-light">Descreva uma ação simples que fez hoje para descobrir o valor vital que está a honrar.</p>
+                <input id="inputValue" type="text" class="w-full p-4 rounded-xl border border-slate-200 mb-4 focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Ex: Ouvi um amigo que estava triste...">
+                <button onclick="executarIA('valor')" class="w-full bg-amber-500 text-white font-bold py-3 rounded-xl hover:bg-amber-600 transition shadow-md active:scale-95">✨ Analisar Propósito</button>
+                <div id="resValue" class="mt-4 p-4 bg-amber-50 rounded-xl text-amber-900 hidden border border-amber-100"></div>
+            </div>
+        </section>
+
+        <!-- Secção de Gráficos e Estatísticas -->
+        <section id="stats" class="glass-card p-8 shadow-lg">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold">Mapa da Flexibilidade</h2>
+                <p class="text-slate-500">Visualize o equilíbrio entre Descobridor, Observador, Conselheiro e Valorizador.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div class="h-80 bg-white p-4 rounded-2xl">
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div class="h-80 bg-white p-4 rounded-2xl">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-12 text-slate-400 text-sm">
+        <p>Baseado no modelo DNA-V de Louise Hayes & Joseph Ciarrochi</p>
+        <p class="mt-2">Desenvolvido para exploração da Flexibilidade Psicológica 🌀</p>
+    </footer>
+
+    <script>
+        /**
+         * CONFIGURAÇÃO DA API GEMINI
+         * Para que o site funcione no GitHub Pages, cole a sua API KEY entre as aspas abaixo.
+         * Importante: Se o repositório for público, a sua chave estará visível. 
+         * Recomendamos usar apenas para testes ou uso pessoal.
+         */
+        const apiKey = ""; 
+        const MODEL = "gemini-2.5-flash-preview-09-2025";
+
+        async function executarIA(tipo) {
+            const resDiv = tipo === 'transformar' ? document.getElementById('resIA') : document.getElementById('resValue');
+            const input = tipo === 'transformar' ? document.getElementById('inputIA').value : document.getElementById('inputValue').value;
+            
+            if (!input) return;
+            
+            resDiv.classList.remove('hidden');
+            resDiv.innerHTML = '<span class="loading-dots text-indigo-600">A processar</span>';
+
+            const systemPrompt = tipo === 'transformar' 
+                ? "És um especialista em ACT (Terapia de Aceitação e Compromisso). O teu objetivo é a DEFUSÃO. Transforma o pensamento rígido do utilizador numa frase de observação neutra (ex: 'Estou a notar o pensamento de que...'). Sê breve e acolhedor. Usa Português de Portugal."
+                : "És um mentor de valores do modelo DNA-V. Identifica qual o valor humano fundamental por trás da ação descrita. Explica brevemente por que é importante. Usa Português de Portugal.";
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{parts: [{text: input}]}],
+                        systemInstruction: {parts: [{text: systemPrompt}]}
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+
+                resDiv.innerText = data.candidates[0].content.parts[0].text;
+            } catch (e) {
+                console.error(e);
+                resDiv.innerHTML = `<span class="text-slate-500 text-sm">⚠️ Para ativar esta funcionalidade, precisa de inserir uma API Key válida do Google AI Studio no ficheiro index.html.</span>`;
+            }
+        }
+
+        // Inicialização dos Gráficos
+        window.onload = () => {
+            // Gráfico Radar (Habilidades do DNA-V)
+            new Chart(document.getElementById('radarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Descobridor (D)', 'Observador (O)', 'Conselheiro (A)', 'Valorizador (V)'],
+                    datasets: [{
+                        label: 'Equilíbrio Atual',
+                        data: [75, 60, 85, 70],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#4f46e5'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: { r: { beginAtZero: true, max: 100 } }
+                }
+            });
+
+            // Gráfico de Linha (Evolução da Vitalidade)
+            new Chart(document.getElementById('lineChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+                    datasets: [{
+                        label: 'Nível de Vitalidade',
+                        data: [30, 45, 60, 82],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+        };
+    </script>
+</body>
+</html>
